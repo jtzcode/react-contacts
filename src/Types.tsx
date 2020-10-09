@@ -11,3 +11,10 @@ export interface IPersonState {
     DateOfBirth: StringOrNull,  
     PersonId : string
 }
+export interface IValidator<T> {
+    IsValid(input: T): boolean;
+}
+
+export interface IValidation {
+    Validate(state: IPersonState, errors: string[]): void;
+}
