@@ -6,8 +6,8 @@ export interface IPersonState {
     Address2: StringOrNull,  
     Town: string,  
     County: string,  
-    PhoneNumber: string;  
-    Postcode: string,  
+    PhoneNumber: StringOrNull;  
+    Postcode: StringOrNull,  
     DateOfBirth: StringOrNull,  
     PersonId : string
 }

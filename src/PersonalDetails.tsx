@@ -3,6 +3,7 @@ import Button from 'reactstrap/lib/Button';
 import Col from 'reactstrap/lib/Col';
 import Row from 'reactstrap/lib/Row';
 import { IPersonState } from './Types';
+import FormValidation from './FormValidation';
 
 interface IProps {
   DefaultState: IPersonState
@@ -10,6 +11,7 @@ interface IProps {
 
 export default class PersonalDetails extends React.Component<IProps, IPersonState> {
   private defaultState: Readonly<IPersonState>;
+  private canSave: boolean = false;
   constructor(props: IProps) {
     super(props);
     this.defaultState = props.DefaultState;
@@ -106,8 +108,8 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
           <Row>
             <Col>
               <Row>
-                <Col lg="3"><input type="text" id="postcode" className="form-control" onChange={this.updateBinding} value={this.state.Postcode}  /></Col>
-                <Col lg="4"><input type="text" id="phoneNumber" className="form-control" onChange={this.updateBinding} value={this.state.PhoneNumber} /></Col>
+                <Col lg="3"><input type="text" id="postcode" className="form-control" onChange={this.updateBinding} value={this.state.Postcode!}  /></Col>
+                <Col lg="4"><input type="text" id="phoneNumber" className="form-control" onChange={this.updateBinding} value={this.state.PhoneNumber!} /></Col>
               </Row>
             </Col>
           </Row>
@@ -125,6 +127,7 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
               <Button size="lg" color="secondary">Clear</Button>
             </Col>
           </Row>
+          <Row><FormValidation CurrentState = {this.state} CanSave = {this.userCanSave} /></Row>
         </Col>
         <Col>
           <Col>
@@ -136,5 +139,9 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
         </Col>
       </Row>
     );
+  }
+
+  private userCanSave = (hasErrors: boolean) => {
+    this.canSave = hasErrors;
   }
 };
