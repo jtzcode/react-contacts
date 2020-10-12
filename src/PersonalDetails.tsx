@@ -2,8 +2,9 @@ import React from 'react';
 import Button from 'reactstrap/lib/Button';
 import Col from 'reactstrap/lib/Col';
 import Row from 'reactstrap/lib/Row';
-import { IPersonState } from './Types';
+import { IPersonState, PersonRecord } from './Types';
 import FormValidation from './FormValidation';
+import { Database } from './Database';
 
 interface IProps {
   DefaultState: IPersonState
@@ -12,6 +13,9 @@ interface IProps {
 export default class PersonalDetails extends React.Component<IProps, IPersonState> {
   private defaultState: Readonly<IPersonState>;
   private canSave: boolean = false;
+  private people: IPersonState[];
+  private dataLayer: Database<PersonRecord>
+
   constructor(props: IProps) {
     super(props);
     this.defaultState = props.DefaultState;
@@ -143,5 +147,10 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
 
   private userCanSave = (hasErrors: boolean) => {
     this.canSave = hasErrors;
+  }
+
+  private loadPeople = () => {
+    this.people =  new Array<PersonRecord>();
+
   }
 };
