@@ -206,9 +206,10 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
 
     if (state.PersonId === "") {
       state.PersonId = Date.now().toString();
-      this.dataLayer.Create(state);
-      this.loadPeople();
-      this.clear();
+      this.dataLayer.Create(state).then(() => {
+        this.loadPeople();
+        this.clear();
+      });
     } else {
       this.dataLayer.Update(state).then(res => {
         this.loadPeople();
@@ -226,5 +227,15 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
       this.people = people;
       this.setState(this.state);
     });
+  }
+
+  private setActive = (e: any) => {
+    const person: string = e.target.value;
+    const state = this.people.find((element: IPersonState) => {
+      return person === element.PersonId;
+    });
+    if (state) {
+      this.setState(state);
+    }
   }
 };

@@ -1,4 +1,3 @@
-import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 import { ITable, ITableBuilder } from "./TableBuilder";
 import { RecordState } from "./Types";
 
@@ -10,6 +9,7 @@ export class Database<T extends RecordState> {
     constructor(table: ITable) {
         this.table = table;
         this.indexDb = window.indexedDB;
+        this.openDatabase();
     }
 
     private openDatabase(): void {
@@ -37,9 +37,14 @@ export class Database<T extends RecordState> {
         }
     }
 
-    public Create(state: T): void {
-        const dbStore = this.getObjectStore();
-        dbStore!.add(state);
+    public Create(state: T): Promise<void> {
+        return new Promise<void>((resolve) => {
+            const dbStore = this.getObjectStore();
+            const request: IDBRequest = dbStore!.add(state);
+            request.onsuccess = (e: any) => {
+                resolve();
+            }
+        });
     }
 
     public Read(): Promise<T[]> {
