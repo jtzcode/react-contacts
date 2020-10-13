@@ -2,9 +2,10 @@ import React from 'react';
 import Button from 'reactstrap/lib/Button';
 import Col from 'reactstrap/lib/Col';
 import Row from 'reactstrap/lib/Row';
-import { IPersonState, PersonRecord } from './Types';
+import { IPersonState, IRecordState, PersonRecord, RecordState } from './Types';
 import FormValidation from './FormValidation';
 import { Database } from './Database';
+import { PersonalDetailsTableBuilder } from './TableBuilder';
 
 interface IProps {
   DefaultState: IPersonState
@@ -20,6 +21,8 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
     super(props);
     this.defaultState = props.DefaultState;
     this.state = props.DefaultState;
+    const tableBuilder: PersonalDetailsTableBuilder = new PersonalDetailsTableBuilder();
+    this.dataLayer = new Database<PersonRecord>(tableBuilder.Build());
   }
   private updateBinding = (event: any) => {
     switch(event.target.id) {
@@ -53,6 +56,25 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
     }
   }
   public render() {
+    let people = null;
+    if (this.people) {
+      const that = this;
+      people = this.people.map((p) => {
+        return (
+          <Row key={p.PersonId}>
+            <Col lg="6">
+              <label>{p.FirstName} {p.LastName}</label>
+            </Col>
+            <Col lg="3">
+              <button value={p.PersonId} color="link" onClick={that.setActive}>Edit</button>
+            </Col>
+            <Col lg="3">
+              <button value={p.PersonId} color="link" onClick={that.delete}>Delete</button>
+            </Col>
+          </Row>
+        )
+      }, this);
+    }
     return (
       <Row>
         <Col lg="8">
@@ -125,10 +147,10 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
           </Row>
           <Row>
             <Col>
-              <Button size="lg" color="primary">Save</Button>
+              <Button size="lg" color="primary" onClick={this.savePerson}>Save</Button>
             </Col>
             <Col>
-              <Button size="lg" color="secondary">Clear</Button>
+              <Button size="lg" color="secondary" onClick={this.clear}>Clear</Button>
             </Col>
           </Row>
           <Row><FormValidation CurrentState = {this.state} CanSave = {this.userCanSave} /></Row>
@@ -136,13 +158,62 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
         <Col>
           <Col>
             <Row>
-              <Col lg="6"><Button size="lg" color="success">Load</Button></Col>
-              <Col lg="6"><Button size="lg" color="info">New Person</Button></Col>
+              <Col>{people}</Col>
+            </Row>
+            <Row>
+              <Col lg="6"><Button size="lg" color="success" onClick={this.loadPeople}>Load</Button></Col>
+              <Col lg="6"><Button size="lg" color="info" onClick={this.clear}>New Person</Button></Col>
             </Row>
           </Col>
         </Col>
       </Row>
     );
+  }
+
+  private async deletePerson(person: string) {
+    const foundPerson = this.people.find((element: IPersonState) => {
+      return element.PersonId === person;
+    });
+    if (!foundPerson) {
+      return;
+    }
+
+    const personState: IRecordState = new RecordState();
+    personState.IsActive = false;
+    const state: PersonRecord = {...foundPerson, ...personState};
+    await this.dataLayer.Update(state);
+    this.loadPeople();
+    this.clear();
+  }
+
+  private clear = () => {
+    this.setState(this.defaultState);
+  }
+
+  private delete = (e: any) => {
+    const person = e.target.value;
+    this.deletePerson(person);
+  }
+
+  private savePerson = () => {
+    if (!this.canSave) {
+      alert('Cannot save. Check the items.');
+      return;
+    }
+    const personState: IRecordState = new RecordState();
+    personState.IsActive = true;
+    const state: PersonRecord = {...personState, ...this.state};
+
+    if (state.PersonId === "") {
+      state.PersonId = Date.now().toString();
+      this.dataLayer.Create(state);
+      this.loadPeople();
+      this.clear();
+    } else {
+      this.dataLayer.Update(state).then(res => {
+        this.loadPeople();
+      })
+    }
   }
 
   private userCanSave = (hasErrors: boolean) => {
@@ -151,6 +222,9 @@ export default class PersonalDetails extends React.Component<IProps, IPersonStat
 
   private loadPeople = () => {
     this.people =  new Array<PersonRecord>();
-
+    this.dataLayer.Read().then(people => {
+      this.people = people;
+      this.setState(this.state);
+    });
   }
 };

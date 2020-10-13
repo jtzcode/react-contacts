@@ -61,4 +61,24 @@ export class Database<T extends RecordState> {
             }
         });        
     }
+
+    public Update(state: T): Promise<void> {
+        return new Promise<void>((resolve) => {
+            const dbStore = this.getObjectStore();
+            const innerRequest: IDBRequest = dbStore!.put(state);
+            innerRequest.onsuccess = () => {
+                resolve();
+            }
+        });
+    }
+
+    public Delete(index: number | null): Promise<void> {
+        return new Promise<void>((resolve) => {
+            const dbStore = this.getObjectStore();
+            const request = dbStore!.delete(index!.toString());
+            request.onsuccess = () => {
+                resolve();
+            }
+        });
+    }
 }
